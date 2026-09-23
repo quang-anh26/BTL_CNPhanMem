@@ -1,0 +1,144 @@
+# Real-Time Messaging System — Core Scaffold (Phần lõi bắt buộc)
+
+Đây là bản triển khai **phần lõi bắt buộc** theo `Project_Plan_Real_Time_Messaging_System_v4.docx`:
+
+- **Backend**: Spring Boot 3 + Spring Security (JWT + Refresh Token, BCrypt) + Spring Data JPA
+  + SQL Server + WebSocket/STOMP.
+- **Frontend**: React 18 + Vite + React Router + @stomp/stompjs (SockJS).
+
+Đã có: đăng ký/đăng nhập, duy trì phiên (refresh token), hồ sơ cá nhân, kết bạn,
+chat 1-1 realtime (gửi/nhận, Sent/Seen, Reply, Thu hồi, lazy-load lịch sử 20 tin/lần,
+typing indicator, online/offline), tạo & quản lý group chat cơ bản, gửi ảnh/tệp,
+chặn người dùng, và khu vực Admin (dashboard + khóa/mở khóa tài khoản).
+
+Các mục "Nên có" / "Nếu còn thời gian" trong bản kế hoạch (emoji reaction, notification
+đẩy, group chat nâng cao, v.v.) **chưa** được triển khai ở bản này — nhắn để mình làm
+tiếp khi cần.
+
+---
+
+## 1. Yêu cầu môi trường
+
+- JDK 17+
+- Maven 3.9+ (hoặc dùng `./mvnw` nếu bạn thêm wrapper)
+- Node.js 18+ và npm
+- Microsoft SQL Server (2019+) — cài trực tiếp, hoặc chạy nhanh qua Docker (xem mục 2)
+- (Tùy chọn) Docker + Docker Compose, nếu muốn dựng SQL Server bằng 1 lệnh thay vì cài thủ công
+
+> Lưu ý: mình **chưa build/compile thử** được project này vì môi trường tạo file không
+> có quyền truy cập Maven Central / npm registry đầy đủ. Trước khi dùng thật, hãy chạy
+> `mvn clean install` và `npm install` để bắt các lỗi phát sinh (nếu có) — mã nguồn đã
+> được rà soát kỹ theo logic nhưng chưa qua compiler.
+
+## 2. Cơ sở dữ liệu (SQL Server)
+
+**Cách A — Có sẵn SQL Server:** chỉ cần tạo 1 database rỗng (ví dụ `messaging_db`) rồi
+chạy `backend/database/schema.sql` để tạo đủ 9 bảng (khớp chính xác với 9 JPA entity).
+Muốn có dữ liệu mẫu để test ngay, chạy tiếp `backend/database/seed-data.sql` — script
+này tạo sẵn 3 tài khoản (`admin` / `alice` / `bob`, mật khẩu đều là `Password123`),
+1 quan hệ bạn bè đã accepted, và 1 cuộc trò chuyện có sẵn 2 tin nhắn giữa alice & bob.
+
+**Cách B — Chưa có SQL Server:** dùng Docker để dựng nhanh:
+
+```bash
+cd backend
+docker compose up -d              # chạy SQL Server 2022 ở localhost:1433, sa/YourPassword123
+# đợi container healthy (vài chục giây), rồi chạy 2 script trên bằng sqlcmd, Azure Data
+# Studio, DBeaver, hoặc bất kỳ client SQL Server nào bạn quen dùng, ví dụ:
+docker exec -it messaging-sqlserver /opt/mssql-tools/bin/sqlcmd \
+  -S localhost -U sa -P YourPassword123 -i /dev/stdin < database/schema.sql
+docker exec -it messaging-sqlserver /opt/mssql-tools/bin/sqlcmd \
+  -S localhost -U sa -P YourPassword123 -i /dev/stdin < database/seed-data.sql
+```
+
+**Lưu ý về `ddl-auto=update`:** `application.yml` hiện để Hibernate tự tạo/cập nhật
+bảng khi backend khởi động, nên kể cả khi bạn *không* chạy `schema.sql` tay, backend
+vẫn tự dựng đủ bảng ở lần chạy đầu. Nếu bạn đã chạy `schema.sql` tay và muốn Hibernate
+không đụng vào cấu trúc bảng nữa, đổi `ddl-auto` thành `validate` (kiểm tra khớp, không
+sửa) hoặc `none` trong `application.yml`.
+
+## 3. Chạy Backend
+
+```bash
+cd backend
+
+# Cấu hình kết nối SQL Server qua biến môi trường (hoặc sửa trực tiếp application.yml)
+export DB_HOST=localhost
+export DB_PORT=1433
+export DB_NAME=messaging_db
+export DB_USERNAME=sa
+export DB_PASSWORD=YourPassword123
+export JWT_SECRET=$(openssl rand -base64 48)     # secret dài, ngẫu nhiên cho JWT
+export CORS_ORIGINS=http://localhost:5173
+
+mvn spring-boot:run
+```
+
+- `spring.jpa.hibernate.ddl-auto=update` → Hibernate sẽ tự tạo bảng trong `messaging_db`
+  khi chạy lần đầu (9 bảng: USERS, FRIEND_REQUEST, CONVERSATION, CONVERSATION_MEMBER,
+  MESSAGE, MESSAGE_STATUS, ATTACHMENT, BLOCK, REFRESH_TOKEN).
+- Backend chạy ở `http://localhost:8080`.
+- Khi cần tài khoản Admin đầu tiên: đăng ký một user bình thường qua `/api/auth/register`,
+  sau đó vào SQL Server đổi cột `role` của user đó thành `ADMIN` (chưa có endpoint tạo
+  admin, vì đây không nên public).
+
+## 4. Chạy Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env      # chỉnh VITE_API_BASE_URL nếu backend không ở localhost:8080
+npm run dev
+```
+
+- Mở `http://localhost:5173`.
+- `vite.config.js` đã có sẵn proxy `/api` và `/ws` sang `http://localhost:8080` khi chạy
+  dev, nên bạn cũng có thể để `VITE_API_BASE_URL` trống nếu chạy đúng 2 cổng mặc định.
+
+## 5. Cấu trúc thư mục chính
+
+```
+backend/
+  src/main/java/com/example/messaging/
+    entity/          9 JPA entity theo đúng bảng DB trong bản kế hoạch
+    repository/      Spring Data JPA repositories
+    security/        JwtUtil, JwtAuthenticationFilter, @CurrentUser, UserDetailsService
+    dto/             request/response DTO theo từng module (auth/user/friend/chat/admin)
+    service/         nghiệp vụ chính (Auth, User, Friend, Conversation, Message, Admin...)
+    controller/      REST endpoints
+    websocket/       cấu hình STOMP + xác thực JWT khi CONNECT + xử lý realtime
+    exception/       xử lý lỗi tập trung
+    config/          Spring Security, CORS, static file serving cho /uploads
+
+frontend/
+  src/
+    api/             axios client (tự refresh token khi 401) + các module gọi API
+    context/         AuthContext, SocketContext (kết nối STOMP dùng chung toàn app)
+    components/      Sidebar, Avatar, ProtectedRoute
+    pages/           Login, Register, ChatWindow, FriendsPage, ProfilePage, AdminDashboard
+```
+
+## 6. Luồng nghiệp vụ chính đã triển khai (đối chiếu bản kế hoạch mục 7)
+
+1. Đăng ký/Đăng nhập → nhận Access Token (JWT, 15p) + Refresh Token (7 ngày, lưu DB,
+   thu hồi được).
+2. Tìm bạn → gửi lời mời kết bạn → bên kia chấp nhận → tự động tạo cuộc trò chuyện
+   PRIVATE dùng chung cho 2 người (không tạo trùng).
+3. Gửi tin nhắn qua WebSocket (`/app/chat.send`) → lưu SQL Server → broadcast realtime
+   tới `/topic/conversation/{id}` cho mọi client đang mở cuộc trò chuyện đó.
+4. Trạng thái Sent/Seen theo từng người nhận (bảng MESSAGE_STATUS); khi người nhận mở
+   cuộc trò chuyện, client gọi `/app/chat.seen` → server cập nhật + báo lại cho người
+   gửi để đổi UI "Đã gửi" → "Đã xem".
+5. Lịch sử tin nhắn tải dần (lazy loading) 20 tin/lần qua REST
+   `GET /api/messages/conversation/{id}?page=n`.
+6. Admin: đăng nhập cùng cơ chế JWT nhưng chỉ tài khoản `role=ADMIN` mới gọi được
+   `/api/admin/**` (chặn ở `SecurityConfig`), xem dashboard tổng quan + khóa/mở khóa
+   tài khoản.
+
+## 7. Việc cần làm tiếp (theo đúng bảng ưu tiên trong bản kế hoạch)
+
+- **Nên có**: group chat nâng cao (đổi vai trò thành viên, xóa nhóm), emoji reaction,
+  push notification khi offline, tìm kiếm tin nhắn trong hội thoại.
+- **Nếu còn thời gian**: giao diện dark mode, thống kê chi tiết hơn cho Admin, i18n.
+- Viết test (JUnit cho service layer, React Testing Library cho frontend) — hiện chưa có.
+- Thêm CI (GitHub Actions) build + test tự động.

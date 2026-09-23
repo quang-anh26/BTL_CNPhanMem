@@ -1,0 +1,27 @@
+version: "3.8"
+
+# Spin up a local Microsoft SQL Server for development/testing in one command:
+#   docker compose up -d
+# Then run backend/database/schema.sql and (optionally) seed-data.sql against it
+# (e.g. with Azure Data Studio, DBeaver, or `sqlcmd`), and point the backend's
+# DB_HOST/DB_PORT/DB_USERNAME/DB_PASSWORD env vars at this container.
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: messaging-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourPassword123"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sqlserver-data:
