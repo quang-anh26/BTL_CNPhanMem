@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import basicSsl from '@vitejs/plugin-basic-ssl'
 
 export default defineConfig({
-  plugins: [react(), basicSsl()],
+  plugins: [react()],
   // sockjs-client references the Node.js global object, which doesn't exist in the
   // browser. Vite doesn't polyfill it by default, so we alias it to globalThis here.
   define: {
@@ -13,7 +12,6 @@ export default defineConfig({
     // Allow other devices on the same LAN to open the development server.
     host: '0.0.0.0',
     port: 5173,
-    https: true,
     proxy: {
       '/api': 'http://localhost:8080',
       '/ws': {
