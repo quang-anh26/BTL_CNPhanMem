@@ -35,6 +35,10 @@ public class ConversationMember {
     @Column(name = "joined_at", updatable = false)
     private LocalDateTime joinedAt;
 
+    @Column(name = "is_archived", nullable = false)
+    @Builder.Default
+    private boolean archived = false;
+
     @PrePersist
     protected void onCreate() {
         this.joinedAt = LocalDateTime.now();

@@ -133,7 +133,7 @@ public class ConversationService {
 
     /** List all conversations for the sidebar, newest activity first, with unread badge. */
     public List<ConversationResponse> listForUser(Long userId) {
-        return conversationRepository.findAllByMemberUserId(userId).stream()
+        return conversationRepository.findActiveByMemberUserId(userId).stream()
                 .map(c -> toResponse(c, userId))
                 .sorted((a, b) -> {
                     if (a.getLastMessageAt() == null) return 1;
@@ -143,9 +143,30 @@ public class ConversationService {
                 .collect(Collectors.toList());
     }
 
+    public List<ConversationResponse> listArchivedForUser(Long userId) {
+        return conversationRepository.findArchivedByMemberUserId(userId).stream()
+                .map(c -> toResponse(c, userId))
+                .sorted((a, b) -> {
+                    if (a.getLastMessageAt() == null) return 1;
+                    if (b.getLastMessageAt() == null) return -1;
+                    return b.getLastMessageAt().compareTo(a.getLastMessageAt());
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void setArchived(Long conversationId, Long userId, boolean archived) {
+        ConversationMember member = memberRepository
+                .findByConversationConversationIdAndUserUserId(conversationId, userId)
+                .orElseThrow(() -> ApiException.forbidden("Bạn không thuộc cuộc trò chuyện này"));
+        member.setArchived(archived);
+        memberRepository.save(member);
+    }
+
     private ConversationResponse toResponse(Conversation conversation, Long viewerUserId) {
         String name = conversation.getName();
         String avatar = conversation.getAvatar();
+        Long otherUserId = null;
         String otherUsername = null;
         boolean otherOnline = false;
         java.time.LocalDateTime otherLastSeenAt = null;
@@ -156,6 +177,7 @@ public class ConversationService {
                     .findFirst();
             if (other.isPresent()) {
                 User otherUser = other.get().getUser();
+                otherUserId = otherUser.getUserId();
                 name = otherUser.getDisplayName();
                 avatar = otherUser.getAvatar();
                 otherUsername = otherUser.getUsername();
@@ -176,12 +198,46 @@ public class ConversationService {
                 .type(conversation.getType().name())
                 .name(name)
                 .avatar(avatar)
+                .otherUserId(otherUserId)
                 .otherUserUsername(otherUsername)
-                .lastMessage(last != null ? (last.isDeleted() ? "Tin nhắn đã được thu hồi" : last.getContent()) : null)
+                .lastMessage(buildLastMessagePreview(last, viewerUserId))
                 .lastMessageAt(last != null ? last.getCreatedAt() : null)
                 .unreadCount(unread)
                 .otherUserOnline(otherOnline)
                 .otherUserLastSeenAt(otherLastSeenAt)
                 .build();
+    }
+
+    private String buildLastMessagePreview(Message last, Long viewerUserId) {
+        if (last == null) return null;
+        if (last.isDeleted()) return "Tin nhắn đã được thu hồi";
+
+        boolean looksLikeImageUrl = isImageUrl(last.getContent());
+        boolean isImageMessage = last.getMessageType() == com.example.messaging.entity.enums.MessageType.IMAGE || looksLikeImageUrl;
+
+        if (isImageMessage) {
+            if (last.getSender().getUserId().equals(viewerUserId)) {
+                return "Bạn đã gửi 1 ảnh";
+            }
+
+            String senderName = last.getSender().getDisplayName();
+            if (senderName == null || senderName.isBlank()) {
+                senderName = last.getSender().getUsername();
+            }
+            return senderName + " đã gửi 1 ảnh";
+        }
+
+        if (last.getMessageType() == com.example.messaging.entity.enums.MessageType.FILE) {
+            return "Tệp đính kèm";
+        }
+
+        return last.getContent();
+    }
+
+    private boolean isImageUrl(String content) {
+        if (content == null || content.isBlank()) return false;
+        String lower = content.toLowerCase();
+        return lower.contains("/uploads/") || lower.contains(".png") || lower.contains(".jpg")
+                || lower.contains(".jpeg") || lower.contains(".gif") || lower.contains(".webp");
     }
 }

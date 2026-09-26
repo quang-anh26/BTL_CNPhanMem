@@ -30,7 +30,7 @@ export default function LoginPage() {
       <div className="auth-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <MessengerLogo size={36} />
-          <h1 style={{ margin: 0, fontSize: 22 }}>Messenger</h1>
+          <h1 style={{ margin: 0, fontSize: 22 }}>Kapatalk</h1>
         </div>
         <p className="sub">Đăng nhập tài khoản để bắt đầu trò chuyện</p>
 

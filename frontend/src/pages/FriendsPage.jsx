@@ -3,15 +3,19 @@ import Avatar from '../components/Avatar'
 import { friendApi } from '../api/friendApi'
 import { conversationApi } from '../api/conversationApi'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function FriendsPage() {
   const [received, setReceived] = useState([])
   const [sent, setSent] = useState([])
+  const [accepted, setAccepted] = useState([])
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const load = () => {
     friendApi.received().then((res) => setReceived(res.data))
     friendApi.sent().then((res) => setSent(res.data))
+    friendApi.accepted().then((res) => setAccepted(res.data))
   }
 
   useEffect(load, [])
@@ -55,6 +59,25 @@ export default function FriendsPage() {
             <div style={{ flex: 1, fontSize: 14 }}>Đang chờ phản hồi từ user #{r.receiverId}</div>
           </div>
         ))}
+      </div>
+
+      <div className="friend-panel" style={{ overflowY: 'auto' }}>
+        <h3>Bạn bè ({accepted.length})</h3>
+        {accepted.length === 0 && <p style={{ color: '#999', fontSize: 13 }}>Chưa có bạn bè</p>}
+        {accepted.map((friend) => {
+          const isSender = String(friend.senderId) === String(user?.userId)
+          const friendName = isSender ? friend.receiverDisplayName : friend.senderDisplayName
+          const friendAvatar = isSender ? friend.receiverAvatar : friend.senderAvatar
+          return (
+            <div key={friend.id} className="friend-request-row">
+              <Avatar src={friendAvatar} name={friendName} size={36} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600 }}>{friendName}</div>
+                <div style={{ fontSize: 12, color: '#999' }}>Đã kết bạn</div>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import com.example.messaging.dto.user.UserProfileResponse;
 import com.example.messaging.entity.User;
 import com.example.messaging.exception.ApiException;
 import com.example.messaging.repository.UserRepository;
+import com.example.messaging.repository.FriendRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FriendRequestRepository friendRequestRepository;
     private final PasswordEncoder passwordEncoder;
 
     public User getByIdOrThrow(Long userId) {
@@ -58,9 +60,27 @@ public class UserService {
     public List<UserProfileResponse> search(String keyword, Long excludeUserId) {
         return userRepository.searchByUsernameOrDisplayName(keyword).stream()
                 .filter(u -> !u.getUserId().equals(excludeUserId))
-                .map(this::toProfileResponse)
+                .map(user -> toSearchResponse(user, excludeUserId))
                 .collect(Collectors.toList());
     }
+
+            private UserProfileResponse toSearchResponse(User user, Long viewerId) {
+            String relationshipStatus = friendRequestRepository.findRelationship(viewerId, user.getUserId())
+                .stream()
+                .findFirst()
+                .map(request -> request.getStatus().name())
+                .orElse(null);
+            return UserProfileResponse.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .displayName(user.getDisplayName())
+                .avatar(user.getAvatar())
+                .bio(user.getBio())
+                .online(user.isOnline())
+                .status(user.getStatus().name())
+                .relationshipStatus(relationshipStatus)
+                .build();
+            }
 
     @Transactional
     public void setOnlineStatus(Long userId, boolean online) {
@@ -92,6 +112,7 @@ public class UserService {
                 .bio(user.getBio())
                 .online(user.isOnline())
                 .status(user.getStatus().name())
+                .relationshipStatus(null)
                 .build();
     }
 }

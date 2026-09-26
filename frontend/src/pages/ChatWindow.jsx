@@ -9,7 +9,7 @@ import { useSocket } from '../context/SocketContext'
 import {
   VideoCallIcon,
   PhoneCallIcon,
-  MoreVerticalIcon,
+  InfoIcon,
   PaperclipIcon,
   EmojiIcon,
   SendPaperPlane,
@@ -32,6 +32,21 @@ function formatLastSeen(dateStr, now) {
   if (elapsedHours < 24) return `${elapsedHours} giờ trước`
   const elapsedDays = Math.floor(elapsedHours / 24)
   return `${elapsedDays} ngày trước`
+}
+
+function isImageMessage(message) {
+  if (!message) return false
+
+  if (message.messageType === 'IMAGE') return true
+
+  const content = typeof message.content === 'string' ? message.content.trim() : ''
+  if (!content) return false
+
+  return (
+    content.startsWith('/uploads/') ||
+    content.startsWith('http://') ||
+    content.startsWith('https://')
+  )
 }
 
 export default function ChatWindow() {
@@ -220,7 +235,9 @@ export default function ChatWindow() {
         conversationId: Number(conversationId),
         content: data.url,
         messageType: isImage ? 'IMAGE' : 'FILE',
+        replyToMessageId: replyTo?.messageId || null,
       })
+      setReplyTo(null)
     } catch (err) {
       alert(err.response?.data?.message || 'Không thể tải tệp lên')
     } finally {
@@ -236,7 +253,7 @@ export default function ChatWindow() {
 
   const sharedImages = useMemo(() => {
     return messages
-      .filter((m) => m.messageType === 'IMAGE' && !m.deleted)
+      .filter((m) => isImageMessage(m) && !m.deleted)
       .map((m) => m.content)
       .reverse()
   }, [messages])
@@ -281,7 +298,7 @@ export default function ChatWindow() {
               onClick={() => setShowInfoPanel((v) => !v)}
               title="Thông tin cuộc trò chuyện"
             >
-              <MoreVerticalIcon size={19} color="#8da2b5" />
+              <InfoIcon size={20} color="#8da2b5" />
             </button>
           </div>
         </div>
@@ -317,6 +334,7 @@ export default function ChatWindow() {
           {messages.map((m) => {
             const mine = String(m.senderId) === String(user?.userId)
             const timeDisplay = formatMsgTime(m.createdAt)
+            const isImageBubble = isImageMessage(m) && !m.deleted
 
             return (
               <div
@@ -334,46 +352,48 @@ export default function ChatWindow() {
                 )}
 
                 <div className="msg-bubble-container">
-                  <div className={`msg-bubble ${mine ? 'bubble-mine' : 'bubble-theirs'} ${m.deleted ? 'deleted' : ''}`}>
+                  <div className={`msg-bubble ${mine ? 'bubble-mine' : 'bubble-theirs'} ${m.deleted ? 'deleted' : ''} ${isImageBubble ? 'image-message' : ''}`}>
                     {m.replyToMessageId && !m.deleted && (
                       <div className="msg-reply-quote">
                         ↩ {m.replyToContentPreview || 'tin nhắn'}
                       </div>
                     )}
 
-                    {m.deleted ? (
-                      <span className="msg-deleted-text">Tin nhắn đã được thu hồi</span>
-                    ) : m.messageType === 'IMAGE' ? (
-                      <img
-                        src={m.content}
-                        alt="attachment"
-                        className="msg-image-content"
-                      />
-                    ) : m.messageType === 'FILE' ? (
-                      <a
-                        href={m.content}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="msg-file-content"
-                      >
-                        📎 Tệp đính kèm
-                      </a>
-                    ) : (
-                      <span className="msg-text-content">{m.content}</span>
-                    )}
-
-                    {/* Inline time & status stamp */}
-                    <span className="msg-inline-meta">
-                      <span className="msg-time-stamp">{timeDisplay}</span>
-                      {mine && !m.deleted && (
-                        <span className="msg-status-icon">
-                          <DoubleCheckIcon
-                            size={14}
-                            color={m.deliveryStatus === 'SEEN' ? '#60a5fa' : 'rgba(255,255,255,0.7)'}
-                          />
-                        </span>
+                    <div className="msg-content-row">
+                      {m.deleted ? (
+                        <span className="msg-deleted-text">Tin nhắn đã được thu hồi</span>
+                      ) : isImageMessage(m) ? (
+                        <img
+                          src={m.content}
+                          alt="attachment"
+                          className="msg-image-content"
+                        />
+                      ) : m.messageType === 'FILE' ? (
+                        <a
+                          href={m.content}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="msg-file-content"
+                        >
+                          📎 Tệp đính kèm
+                        </a>
+                      ) : (
+                        <span className="msg-text-content">{m.content}</span>
                       )}
-                    </span>
+
+                      {/* Inline time & status stamp */}
+                      <span className="msg-inline-meta">
+                        <span className="msg-time-stamp">{timeDisplay}</span>
+                        {mine && !m.deleted && (
+                          <span className="msg-status-icon">
+                            <DoubleCheckIcon
+                              size={14}
+                              color={m.deliveryStatus === 'SEEN' ? '#60a5fa' : 'rgba(255,255,255,0.7)'}
+                            />
+                          </span>
+                        )}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Actions hover */}

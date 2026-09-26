@@ -2,14 +2,31 @@ import React from 'react'
 
 export function MessengerLogo({ size = 32 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="kapatalk-primary" x1="10" y1="8" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#13A8F5" />
+          <stop offset="1" stopColor="#1455E9" />
+        </linearGradient>
+        <linearGradient id="kapatalk-secondary" x1="28" y1="25" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#75A4F7" />
+          <stop offset="1" stopColor="#4779E9" />
+        </linearGradient>
+      </defs>
       <path
-        d="M18 3C9.716 3 3 9.417 3 17.333C3 21.848 5.176 25.836 8.57 28.375V33L12.983 30.573C14.568 31.285 16.327 31.667 18 31.667C26.284 31.667 33 25.25 33 17.333C33 9.417 26.284 3 18 3Z"
-        fill="#0084FF"
+        d="M31.5 8C16.3 8 5 18.2 5 30.5C5 37.2 8.1 43.2 13.3 47.2L10.4 56.8C10 58.2 11.4 59.4 12.7 58.8L23.3 53.5C25.9 54.1 28.6 54.4 31.5 54.4C46.7 54.4 58 44.2 58 31.9C58 19.6 46.7 8 31.5 8Z"
+        fill="url(#kapatalk-primary)"
       />
-      <circle cx="11.5" cy="17.5" r="2.2" fill="white" />
-      <circle cx="18" cy="17.5" r="2.2" fill="white" />
-      <circle cx="24.5" cy="17.5" r="2.2" fill="white" />
+      <path
+        d="M36.2 22.5C48.6 22.5 58 31 58 41.2C58 46.6 55.4 51.4 51.2 54.5L53.5 62.1C53.8 63.1 52.8 64 51.9 63.5L43.3 59.2C41.2 59.7 38.8 60 36.2 60C27.3 60 19.8 55.8 16.4 49.5C20.3 52.5 25.7 54.1 31.8 54.1C47 54.1 58.2 44 58.2 31.8C58.2 28.4 57.3 25.2 55.6 22.4C58.1 24.1 60 26.1 61.4 28.4C58.6 24.7 53.3 22.5 46.7 22.5H36.2Z"
+        fill="url(#kapatalk-secondary)"
+      />
+      <circle cx="21.5" cy="31.5" r="3.1" fill="white" />
+      <circle cx="31.5" cy="31.5" r="3.1" fill="white" />
+      <circle cx="41.5" cy="31.5" r="3.1" fill="white" />
+      <rect x="45" y="2" width="5" height="15" rx="2.5" transform="rotate(18 45 2)" fill="url(#kapatalk-primary)" />
+      <rect x="55" y="9" width="5" height="15" rx="2.5" transform="rotate(48 55 9)" fill="url(#kapatalk-primary)" />
+      <rect x="59" y="21" width="5" height="12" rx="2.5" transform="rotate(86 59 21)" fill="url(#kapatalk-primary)" />
     </svg>
   )
 }
@@ -29,6 +46,17 @@ export function FriendsIcon({ size = 20, color = 'currentColor' }) {
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
+export function ArchiveIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M5 6v14h14V6" />
+      <path d="M4 3h16l1 3H3l1-3Z" />
+      <path d="M9 10h6" />
     </svg>
   )
 }
@@ -66,6 +94,14 @@ export function ChevronUp({ size = 16, color = 'currentColor' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="18 15 12 9 6 15" />
+    </svg>
+  )
+}
+
+export function ChevronLeft({ size = 16, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
     </svg>
   )
 }
@@ -109,6 +145,16 @@ export function MoreVerticalIcon({ size = 19, color = 'currentColor' }) {
       <circle cx="12" cy="12" r="1.5" fill={color} />
       <circle cx="12" cy="5" r="1.5" fill={color} />
       <circle cx="12" cy="19" r="1.5" fill={color} />
+    </svg>
+  )
+}
+
+export function InfoIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <line x1="12" y1="10" x2="12" y2="16" />
+      <circle cx="12" cy="7" r="0.8" fill={color} stroke="none" />
     </svg>
   )
 }

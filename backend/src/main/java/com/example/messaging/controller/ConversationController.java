@@ -25,6 +25,19 @@ public class ConversationController {
         return ResponseEntity.ok(conversationService.listForUser(userId));
     }
 
+    @GetMapping("/archived")
+    public ResponseEntity<List<ConversationResponse>> archived(@CurrentUser Long userId) {
+        return ResponseEntity.ok(conversationService.listArchivedForUser(userId));
+    }
+
+    @PostMapping("/{conversationId}/archive")
+    public ResponseEntity<Void> archive(@CurrentUser Long userId,
+                                        @PathVariable Long conversationId,
+                                        @RequestParam(defaultValue = "true") boolean archived) {
+        conversationService.setArchived(conversationId, userId, archived);
+        return ResponseEntity.noContent().build();
+    }
+
     /** Chat 1-1: get-or-create a PRIVATE conversation with another user (after friend accepted). */
     @PostMapping("/private/{otherUserId}")
     public ResponseEntity<Map<String, Long>> getOrCreatePrivate(@CurrentUser Long userId,

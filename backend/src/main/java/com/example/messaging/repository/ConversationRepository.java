@@ -23,4 +23,12 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     @Query("SELECT DISTINCT c FROM Conversation c JOIN c.members m WHERE m.user.userId = :userId " +
            "ORDER BY c.createdAt DESC")
     List<Conversation> findAllByMemberUserId(@Param("userId") Long userId);
+
+    @Query("SELECT DISTINCT c FROM Conversation c JOIN c.members m WHERE m.user.userId = :userId " +
+           "AND (m.archived = false OR m.archived IS NULL) ORDER BY c.createdAt DESC")
+    List<Conversation> findActiveByMemberUserId(@Param("userId") Long userId);
+
+    @Query("SELECT DISTINCT c FROM Conversation c JOIN c.members m WHERE m.user.userId = :userId " +
+           "AND m.archived = true ORDER BY c.createdAt DESC")
+    List<Conversation> findArchivedByMemberUserId(@Param("userId") Long userId);
 }
