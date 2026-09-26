@@ -72,6 +72,14 @@ public class FriendService {
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+        public List<FriendRequestResponse> getAccepted(Long userId) {
+        return friendRequestRepository
+            .findBySenderUserIdAndStatusOrReceiverUserIdAndStatus(
+                userId, FriendRequestStatus.ACCEPTED,
+                userId, FriendRequestStatus.ACCEPTED)
+            .stream().map(this::toResponse).collect(Collectors.toList());
+        }
+
     private FriendRequestResponse toResponse(FriendRequest fr) {
         return FriendRequestResponse.builder()
                 .id(fr.getId())
@@ -80,6 +88,9 @@ public class FriendService {
                 .senderDisplayName(fr.getSender().getDisplayName())
                 .senderAvatar(fr.getSender().getAvatar())
                 .receiverId(fr.getReceiver().getUserId())
+                .receiverUsername(fr.getReceiver().getUsername())
+                .receiverDisplayName(fr.getReceiver().getDisplayName())
+                .receiverAvatar(fr.getReceiver().getAvatar())
                 .status(fr.getStatus().name())
                 .createdAt(fr.getCreatedAt())
                 .build();

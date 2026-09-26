@@ -15,4 +15,5 @@ public class UserProfileResponse {
     private String bio;
     private boolean online;
     private String status; // ACTIVE / LOCKED
+    private String relationshipStatus; // ACCEPTED / PENDING / REJECTED / null
 }

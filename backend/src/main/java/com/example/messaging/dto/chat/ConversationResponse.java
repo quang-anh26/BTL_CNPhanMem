@@ -14,6 +14,7 @@ public class ConversationResponse {
     private String type; // PRIVATE / GROUP
     private String name;       // group name, or the other user's display name for PRIVATE
     private String avatar;     // group avatar, or the other user's avatar for PRIVATE
+    private Long otherUserId;
     private String otherUserUsername;
     private String lastMessage;
     private LocalDateTime lastMessageAt;

@@ -84,6 +84,7 @@ CREATE TABLE dbo.CONVERSATION_MEMBER (
     user_id         BIGINT      NOT NULL,
     role            VARCHAR(20) NOT NULL DEFAULT 'MEMBER',  -- ADMIN, MEMBER
     joined_at       DATETIME2   NOT NULL DEFAULT SYSUTCDATETIME(),
+    is_archived     BIT         NOT NULL DEFAULT 0,
     CONSTRAINT FK_convmember_conversation FOREIGN KEY (conversation_id) REFERENCES dbo.CONVERSATION(conversation_id),
     CONSTRAINT FK_convmember_user         FOREIGN KEY (user_id)         REFERENCES dbo.USERS(user_id),
     CONSTRAINT UQ_convmember_conv_user UNIQUE (conversation_id, user_id)
@@ -116,7 +117,7 @@ CREATE INDEX IX_message_conversation_created ON dbo.MESSAGE(conversation_id, cre
 GO
 
 /* ---------------------------------------------------------------------
-   6. MESSAGE_STATUS  (per-recipient Sent/Delivered/Seen)
+    6. MESSAGE_STATUS  (per-recipient Sent/Delivered/Seen)
    --------------------------------------------------------------------- */
 IF OBJECT_ID('dbo.MESSAGE_STATUS', 'U') IS NOT NULL DROP TABLE dbo.MESSAGE_STATUS;
 GO

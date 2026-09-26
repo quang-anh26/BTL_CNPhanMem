@@ -43,4 +43,9 @@ public class FriendController {
     public ResponseEntity<List<FriendRequestResponse>> sent(@CurrentUser Long userId) {
         return ResponseEntity.ok(friendService.getPendingSent(userId));
     }
+
+    @GetMapping("/accepted")
+    public ResponseEntity<List<FriendRequestResponse>> accepted(@CurrentUser Long userId) {
+        return ResponseEntity.ok(friendService.getAccepted(userId));
+    }
 }

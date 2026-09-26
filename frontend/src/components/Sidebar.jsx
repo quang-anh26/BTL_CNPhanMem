@@ -4,8 +4,9 @@ import Avatar from './Avatar'
 import { conversationApi } from '../api/conversationApi'
 import { userApi } from '../api/userApi'
 import { friendApi } from '../api/friendApi'
+import { blockApi } from '../api/blockApi'
 import { useSocket } from '../context/SocketContext'
-import { SearchIcon } from './Icons'
+import { SearchIcon, MoreVerticalIcon } from './Icons'
 
 export function formatConversationTime(dateStr) {
   if (!dateStr) return ''
@@ -35,10 +36,12 @@ export function formatConversationTime(dateStr) {
 }
 
 export default function Sidebar({ activeConversationId }) {
-  const { subscribe, connected } = useSocket()
+  const { subscribe, connected, startCall } = useSocket()
   const navigate = useNavigate()
 
   const [conversations, setConversations] = useState([])
+  const [archivedConversations, setArchivedConversations] = useState([])
+  const [showArchivedOnly, setShowArchivedOnly] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [suggestedUsers, setSuggestedUsers] = useState([])
@@ -46,12 +49,13 @@ export default function Sidebar({ activeConversationId }) {
   const [groupName, setGroupName] = useState('')
   const [groupMembers, setGroupMembers] = useState([])
   const [groupSaving, setGroupSaving] = useState(false)
+  const [openConversationMenu, setOpenConversationMenu] = useState(null)
 
   const loadConversations = () => {
     conversationApi
       .list()
-      .then((res) => {
-        const list = res.data || []
+      .then((activeRes) => {
+        const list = activeRes.data || []
         setConversations(list)
         if (list.length === 0) {
           // Load suggestions if no conversations yet
@@ -61,13 +65,103 @@ export default function Sidebar({ activeConversationId }) {
             .catch(() => {})
         }
       })
-      .catch(() => {
-        setConversations([])
-      })
+      .catch(() => setConversations([]))
+
+    conversationApi
+      .archived()
+      .then((archivedRes) => setArchivedConversations(archivedRes.data || []))
+      .catch(() => setArchivedConversations([]))
+  }
+
+  const setConversationArchived = async (conversationId, archived) => {
+    try {
+      await conversationApi.setArchived(conversationId, archived)
+      loadConversations()
+      if (archived && String(conversationId) === String(activeConversationId)) {
+        navigate('/')
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Không thể cập nhật lưu trữ đoạn chat')
+    }
+  }
+
+  const markConversationUnread = (conversationId) => {
+    localStorage.setItem(`kapatalk-unread-${conversationId}`, 'true')
+    setConversations((current) => current.map((conversation) => (
+      conversation.conversationId === conversationId
+        ? { ...conversation, unreadCount: Math.max(conversation.unreadCount || 0, 1) }
+        : conversation
+    )))
+    setOpenConversationMenu(null)
+  }
+
+  const openConversation = (conversationId) => {
+    navigate(`/chat/${conversationId}`)
+  }
+
+  const toggleConversationMute = (conversationId) => {
+    const key = `kapatalk-muted-${conversationId}`
+    if (localStorage.getItem(key) === 'true') localStorage.removeItem(key)
+    else localStorage.setItem(key, 'true')
+    setOpenConversationMenu(null)
+  }
+
+  const startConversationCall = (conversation, type) => {
+    if (conversation.type !== 'PRIVATE' || !conversation.otherUserUsername) {
+      alert('Chỉ có thể gọi trong cuộc trò chuyện cá nhân')
+      return
+    }
+    startCall(conversation, type)
+    setOpenConversationMenu(null)
+  }
+
+  const blockConversationUser = async (conversation) => {
+    if (!conversation.otherUserId || !window.confirm(`Chặn ${conversation.name || 'người dùng'}?`)) return
+    try {
+      await blockApi.block(conversation.otherUserId)
+      setOpenConversationMenu(null)
+      await setConversationArchived(conversation.conversationId, true)
+    } catch (err) {
+      alert(err.response?.data?.message || 'Không thể chặn người dùng')
+    }
+  }
+
+  const deleteConversation = async (conversation) => {
+    if (!window.confirm('Xóa đoạn chat này khỏi danh sách của bạn?')) return
+    try {
+      await conversationApi.leave(conversation.conversationId)
+      setOpenConversationMenu(null)
+      loadConversations()
+      if (String(conversation.conversationId) === String(activeConversationId)) navigate('/')
+    } catch (err) {
+      alert(err.response?.data?.message || 'Không thể xóa đoạn chat')
+    }
   }
 
   useEffect(() => {
     loadConversations()
+  }, [])
+
+  useEffect(() => {
+    const showArchived = () => setShowArchivedOnly(true)
+    const showActive = () => setShowArchivedOnly(false)
+    window.addEventListener('kapatalk-show-archived', showArchived)
+    window.addEventListener('kapatalk-show-active', showActive)
+    return () => {
+      window.removeEventListener('kapatalk-show-archived', showArchived)
+      window.removeEventListener('kapatalk-show-active', showActive)
+    }
+  }, [])
+
+  useEffect(() => {
+    const closeConversationMenu = (event) => {
+      if (!event.target.closest('.conversation-options-menu, .conversation-archive-btn')) {
+        setOpenConversationMenu(null)
+      }
+    }
+
+    document.addEventListener('click', closeConversationMenu)
+    return () => document.removeEventListener('click', closeConversationMenu)
   }, [])
 
   useEffect(() => {
@@ -254,13 +348,19 @@ export default function Sidebar({ activeConversationId }) {
                 <div className="conv-name">{u.displayName}</div>
                 <div className="conv-last">@{u.username}</div>
               </div>
-              <button
-                className="icon-btn"
-                onClick={() => sendFriendRequest(u.userId)}
-                title="Gửi lời mời kết bạn"
-              >
-                ➕
-              </button>
+              {u.relationshipStatus === 'ACCEPTED' ? (
+                <span className="search-friend-status">Đã kết bạn</span>
+              ) : u.relationshipStatus === 'PENDING' ? (
+                <span className="search-friend-status">Đã gửi</span>
+              ) : (
+                <button
+                  className="icon-btn"
+                  onClick={() => sendFriendRequest(u.userId)}
+                  title="Gửi lời mời kết bạn"
+                >
+                  ➕
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -268,7 +368,13 @@ export default function Sidebar({ activeConversationId }) {
 
       {/* Real Conversation List */}
       <div className="conversation-list">
-        {conversations.length === 0 ? (
+        {showArchivedOnly ? (
+          archivedConversations.length === 0 ? (
+            <div className="sidebar-empty-state" style={{ padding: '20px 14px', textAlign: 'center' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Chưa có đoạn chat lưu trữ</p>
+            </div>
+          ) : null
+        ) : conversations.length === 0 ? (
           <div className="sidebar-empty-state" style={{ padding: '20px 14px', textAlign: 'center' }}>
             <p style={{ fontSize: 13, marginBottom: 8, color: 'var(--text-secondary)' }}>
               Chưa có cuộc trò chuyện nào
@@ -318,7 +424,7 @@ export default function Sidebar({ activeConversationId }) {
               <div
                 key={c.conversationId}
                 className={`conversation-item ${isActive ? 'active' : ''}`}
-                onClick={() => navigate(`/chat/${c.conversationId}`)}
+                onClick={() => openConversation(c.conversationId)}
               >
                 <div className="avatar-wrapper">
                   <Avatar src={c.avatar} name={c.name} size={46} />
@@ -336,14 +442,73 @@ export default function Sidebar({ activeConversationId }) {
                   </div>
                   <div className="conv-bottom-row">
                     <span className="conv-last">{c.lastMessage || 'Chưa có tin nhắn'}</span>
-                    {c.unreadCount > 0 && (
-                      <span className="unread-badge">{c.unreadCount}</span>
+                    {(c.unreadCount > 0 || localStorage.getItem(`kapatalk-unread-${c.conversationId}`) === 'true') && (
+                      <span className="unread-dot" title="Tin nhắn chưa đọc" />
                     )}
                   </div>
                 </div>
+                <button
+                  type="button"
+                  className="conversation-archive-btn"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setOpenConversationMenu((current) => current === c.conversationId ? null : c.conversationId)
+                  }}
+                  title="Tùy chọn đoạn chat"
+                >
+                  <MoreVerticalIcon size={18} />
+                </button>
+                {openConversationMenu === c.conversationId && (
+                  <div className="conversation-options-menu" onClick={(event) => event.stopPropagation()}>
+                    <button type="button" onClick={() => markConversationUnread(c.conversationId)}>Đánh dấu là chưa đọc</button>
+                    <button type="button" onClick={() => toggleConversationMute(c.conversationId)}>Tắt thông báo</button>
+                    <button type="button" onClick={() => {
+                      if (c.otherUserId) navigate(`/profile?userId=${c.otherUserId}`)
+                      setOpenConversationMenu(null)
+                    }}>Xem trang cá nhân</button>
+                    <button type="button" onClick={() => startConversationCall(c, 'audio')}>Gọi thoại</button>
+                    <button type="button" onClick={() => startConversationCall(c, 'video')}>Chat video</button>
+                    <button type="button" onClick={() => blockConversationUser(c)}>Chặn</button>
+                    <button type="button" onClick={() => {
+                      setOpenConversationMenu(null)
+                      setConversationArchived(c.conversationId, true)
+                    }}>Lưu trữ đoạn chat</button>
+                    <button type="button" className="danger-option" onClick={() => deleteConversation(c)}>Xóa đoạn chat</button>
+                  </div>
+                )}
               </div>
             )
           })
+        )}
+
+        {archivedConversations.length > 0 && (
+          <div className="archived-conversations">
+            <div className="archived-heading">Đã lưu trữ</div>
+            {archivedConversations.map((c) => (
+              <div
+                key={c.conversationId}
+                className="conversation-item archived-item"
+                onClick={() => navigate(`/chat/${c.conversationId}`)}
+              >
+                <Avatar src={c.avatar} name={c.name} size={46} />
+                <div className="conv-meta">
+                  <div className="conv-name">{c.name || 'Cuộc trò chuyện'}</div>
+                  <div className="conv-last">{c.lastMessage || 'Chưa có tin nhắn'}</div>
+                </div>
+                <button
+                  type="button"
+                  className="conversation-archive-btn"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setConversationArchived(c.conversationId, false)
+                  }}
+                  title="Bỏ lưu trữ đoạn chat"
+                >
+                  Hiện
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

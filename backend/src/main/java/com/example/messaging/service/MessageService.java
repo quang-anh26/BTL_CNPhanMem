@@ -159,6 +159,17 @@ public class MessageService {
                         .fileSize(a.getFileSize())
                         .build()).collect(Collectors.toList());
 
+        String replyPreview = null;
+        if (m.getReplyToMessage() != null && !m.getReplyToMessage().isDeleted()) {
+            if (m.getReplyToMessage().getMessageType() == MessageType.IMAGE) {
+                replyPreview = "hình ảnh";
+            } else if (m.getReplyToMessage().getMessageType() == MessageType.FILE) {
+                replyPreview = "tệp đính kèm";
+            } else {
+                replyPreview = truncate(m.getReplyToMessage().getContent());
+            }
+        }
+
         return MessageResponse.builder()
                 .messageId(m.getMessageId())
                 .conversationId(m.getConversation().getConversationId())
@@ -169,8 +180,7 @@ public class MessageService {
                 .content(m.isDeleted() ? null : m.getContent())
                 .messageType(m.getMessageType().name())
                 .replyToMessageId(m.getReplyToMessage() != null ? m.getReplyToMessage().getMessageId() : null)
-                .replyToContentPreview(m.getReplyToMessage() != null && !m.getReplyToMessage().isDeleted()
-                        ? truncate(m.getReplyToMessage().getContent()) : null)
+                .replyToContentPreview(replyPreview)
                 .deleted(m.isDeleted())
                 .deliveryStatus(deliveryStatus)
                 .attachments(attachments)
