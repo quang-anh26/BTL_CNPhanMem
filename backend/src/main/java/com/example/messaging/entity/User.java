@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "USERS", uniqueConstraints = {
@@ -35,8 +36,23 @@ public class User {
     @Column(length = 500)
     private String avatar;
 
+    @Column(name = "cover_image", length = 500)
+    private String coverImage;
+
     @Column(length = 255)
     private String bio;
+
+    @Column(name = "education", length = 120)
+    private String education;
+
+    @Column(name = "location", length = 120)
+    private String location;
+
+    @Column(name = "relationship_status", length = 40)
+    private String relationshipStatus;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

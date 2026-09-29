@@ -2,7 +2,6 @@ package com.example.messaging.config;
 
 import com.example.messaging.security.CurrentUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -18,15 +17,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.upload.dir}")
-    private String uploadDir;
-
     private final CurrentUserArgumentResolver currentUserArgumentResolver;
+    private final UploadDirectory uploadDirectory;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + uploadDir + "/");
+            .addResourceLocations(uploadDirectory.resolve().toUri().toString());
     }
 
     @Override

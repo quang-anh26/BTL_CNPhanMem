@@ -12,5 +12,12 @@ export const userApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
+  uploadCover: (file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return axiosClient.post('/api/users/me/cover', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
   search: (q) => axiosClient.get('/api/users/search', { params: { q } }),
 }

@@ -1,6 +1,7 @@
 import axiosClient from './axiosClient'
 
 export const messageApi = {
+  send: (payload) => axiosClient.post('/api/messages', payload),
   history: (conversationId, page = 0) =>
     axiosClient.get(`/api/messages/conversation/${conversationId}`, { params: { page } }),
   recall: (messageId) => axiosClient.post(`/api/messages/${messageId}/recall`),

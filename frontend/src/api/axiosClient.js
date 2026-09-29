@@ -32,7 +32,9 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config
     const status = error.response?.status
 
-    if (status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/api/auth/')) {
+    const hasSessionToken = Boolean(originalRequest.headers?.Authorization || localStorage.getItem('refreshToken'))
+    const needsAuthentication = status === 401 || (status === 403 && hasSessionToken)
+    if (needsAuthentication && !originalRequest._retry && !originalRequest.url?.includes('/api/auth/')) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           pendingQueue.push({ resolve, reject })

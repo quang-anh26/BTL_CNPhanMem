@@ -348,9 +348,9 @@ export default function Sidebar({ activeConversationId }) {
                 <div className="conv-name">{u.displayName}</div>
                 <div className="conv-last">@{u.username}</div>
               </div>
-              {u.relationshipStatus === 'ACCEPTED' ? (
+              {u.friendshipStatus === 'ACCEPTED' ? (
                 <span className="search-friend-status">Đã kết bạn</span>
-              ) : u.relationshipStatus === 'PENDING' ? (
+              ) : u.friendshipStatus === 'PENDING' ? (
                 <span className="search-friend-status">Đã gửi</span>
               ) : (
                 <button
@@ -463,7 +463,7 @@ export default function Sidebar({ activeConversationId }) {
                     <button type="button" onClick={() => markConversationUnread(c.conversationId)}>Đánh dấu là chưa đọc</button>
                     <button type="button" onClick={() => toggleConversationMute(c.conversationId)}>Tắt thông báo</button>
                     <button type="button" onClick={() => {
-                      if (c.otherUserId) navigate(`/profile?userId=${c.otherUserId}`)
+                      if (c.otherUserId) navigate(`/feed/profile/${c.otherUserId}`)
                       setOpenConversationMenu(null)
                     }}>Xem trang cá nhân</button>
                     <button type="button" onClick={() => startConversationCall(c, 'audio')}>Gọi thoại</button>

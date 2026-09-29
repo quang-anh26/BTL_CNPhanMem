@@ -1,6 +1,7 @@
 package com.example.messaging.service;
 
 import com.example.messaging.exception.ApiException;
+import com.example.messaging.config.UploadDirectory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FileStorageService {
 
-    @Value("${app.upload.dir}")
-    private String uploadDir;
+    private final UploadDirectory uploadDirectory;
 
     @Value("${app.upload.max-file-size-mb}")
     private long maxFileSizeMb;
@@ -38,7 +38,7 @@ public class FileStorageService {
         }
 
         try {
-            Path dir = Paths.get(uploadDir);
+            Path dir = uploadDirectory.resolve();
             Files.createDirectories(dir);
 
             String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";

@@ -1,0 +1,19 @@
+IF OBJECT_ID(N'dbo.USERS', N'U') IS NOT NULL
+   AND COL_LENGTH(N'dbo.USERS', N'cover_image') IS NULL
+    ALTER TABLE dbo.USERS ADD cover_image VARCHAR(500) NULL;
+
+IF OBJECT_ID(N'dbo.USERS', N'U') IS NOT NULL
+   AND COL_LENGTH(N'dbo.USERS', N'education') IS NULL
+    ALTER TABLE dbo.USERS ADD education NVARCHAR(120) NULL;
+
+IF OBJECT_ID(N'dbo.USERS', N'U') IS NOT NULL
+   AND COL_LENGTH(N'dbo.USERS', N'location') IS NULL
+    ALTER TABLE dbo.USERS ADD location NVARCHAR(120) NULL;
+
+IF OBJECT_ID(N'dbo.USERS', N'U') IS NOT NULL
+   AND COL_LENGTH(N'dbo.USERS', N'relationship_status') IS NULL
+    ALTER TABLE dbo.USERS ADD relationship_status NVARCHAR(40) NULL;
+
+IF OBJECT_ID(N'dbo.USERS', N'U') IS NOT NULL
+   AND COL_LENGTH(N'dbo.USERS', N'birth_date') IS NULL
+    ALTER TABLE dbo.USERS ADD birth_date DATE NULL;

@@ -56,6 +56,16 @@ public class UserController {
         return ResponseEntity.ok(Map.of("url", url));
     }
 
+    @PostMapping(value = "/me/cover", consumes = "multipart/form-data")
+    public ResponseEntity<Map<String, String>> uploadCover(@CurrentUser Long userId,
+                                                             @RequestParam("file") MultipartFile file) {
+        String url = fileStorageService.store(file);
+        userService.updateProfile(userId, new UpdateProfileRequest() {{
+            setCoverImage(url);
+        }});
+        return ResponseEntity.ok(Map.of("url", url));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<List<UserProfileResponse>> search(@CurrentUser Long userId,
                                                               @RequestParam("q") String keyword) {
