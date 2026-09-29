@@ -5,8 +5,10 @@ import com.example.messaging.dto.chat.MessageResponse;
 import com.example.messaging.security.CurrentUser;
 import com.example.messaging.service.FileStorageService;
 import com.example.messaging.service.MessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +27,15 @@ public class MessageController {
 
     private final MessageService messageService;
     private final FileStorageService fileStorageService;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    @PostMapping
+    public ResponseEntity<MessageResponse> send(@CurrentUser Long userId,
+                                                 @Valid @RequestBody MessageRequest request) {
+        MessageResponse saved = messageService.sendMessage(userId, request);
+        messagingTemplate.convertAndSend("/topic/conversation/" + request.getConversationId(), saved);
+        return ResponseEntity.ok(saved);
+    }
 
     /** Lazy loading history: 20 messages/page. page=0 is the most recent 20. */
     @GetMapping("/conversation/{conversationId}")

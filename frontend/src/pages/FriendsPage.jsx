@@ -70,9 +70,9 @@ export default function FriendsPage() {
           const friendAvatar = isSender ? friend.receiverAvatar : friend.senderAvatar
           return (
             <div key={friend.id} className="friend-request-row">
-              <Avatar src={friendAvatar} name={friendName} size={36} />
+              <button type="button" className="friend-profile-link" onClick={() => navigate(`/feed/profile/${isSender ? friend.receiverId : friend.senderId}`)} aria-label={`Xem trang cá nhân ${friendName}`}><Avatar src={friendAvatar} name={friendName} size={36} /></button>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{friendName}</div>
+                <button type="button" className="friend-profile-name" onClick={() => navigate(`/feed/profile/${isSender ? friend.receiverId : friend.senderId}`)}>{friendName}</button>
                 <div style={{ fontSize: 12, color: '#999' }}>Đã kết bạn</div>
               </div>
             </div>

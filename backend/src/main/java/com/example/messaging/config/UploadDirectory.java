@@ -1,0 +1,35 @@
+package com.example.messaging.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+@Component
+public class UploadDirectory {
+
+    @Value("${app.upload.dir}")
+    private String configuredDirectory;
+
+    public Path resolve() {
+        Path configuredPath = Paths.get(configuredDirectory);
+        if (configuredPath.isAbsolute()) return configuredPath.normalize();
+
+        Path workingDirectory = Paths.get("").toAbsolutePath().normalize();
+        Path ancestor = workingDirectory;
+        while (ancestor != null) {
+            if (Files.exists(ancestor.resolve("backend").resolve("pom.xml"))) {
+                return ancestor.resolve(configuredPath).normalize();
+            }
+            if (ancestor.getFileName() != null
+                    && "backend".equalsIgnoreCase(ancestor.getFileName().toString())
+                    && Files.exists(ancestor.resolve("pom.xml"))) {
+                return ancestor.getParent().resolve(configuredPath).normalize();
+            }
+            ancestor = ancestor.getParent();
+        }
+        return workingDirectory.resolve(configuredPath).normalize();
+    }
+}

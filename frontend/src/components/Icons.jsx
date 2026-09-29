@@ -39,6 +39,15 @@ export function ChatIcon({ size = 20, color = 'currentColor' }) {
   )
 }
 
+export function FeedIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M7 8h10M7 12h10M7 16h6" />
+    </svg>
+  )
+}
+
 export function FriendsIcon({ size = 20, color = 'currentColor' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -127,6 +136,16 @@ export function VideoCallIcon({ size = 20, color = 'currentColor' }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="23 7 16 12 23 17 23 7" />
       <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+    </svg>
+  )
+}
+
+export function FeedVideoIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="3.5" y="4.5" width="17" height="15" rx="4" stroke={color} strokeWidth="2" />
+      <circle cx="12" cy="12" r="3.25" stroke={color} strokeWidth="1.8" />
+      <path d="m11.3 10.55 2.65 1.45-2.65 1.45v-2.9Z" fill={color} />
     </svg>
   )
 }

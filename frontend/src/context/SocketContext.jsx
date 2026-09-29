@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { BASE_URL } from '../api/axiosClient'
@@ -47,18 +47,18 @@ export function SocketProvider({ children }) {
     }
   }, [user])
 
-  const subscribe = (destination, callback) => {
+  const subscribe = useCallback((destination, callback) => {
     if (!clientRef.current || !connected) return () => {}
     const sub = clientRef.current.subscribe(destination, (message) => {
       callback(JSON.parse(message.body))
     })
     return () => sub.unsubscribe()
-  }
+  }, [connected])
 
-  const publish = (destination, body) => {
+  const publish = useCallback((destination, body) => {
     if (!clientRef.current || !connected) return
     clientRef.current.publish({ destination, body: JSON.stringify(body) })
-  }
+  }, [connected])
 
   return (
     <SocketContext.Provider value={{

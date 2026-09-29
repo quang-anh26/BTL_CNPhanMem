@@ -11,6 +11,7 @@ import EmptyChatPage from './pages/EmptyChatPage'
 import ChatWindow from './pages/ChatWindow'
 import FriendsPage from './pages/FriendsPage'
 import ProfilePage from './pages/ProfilePage'
+import FeedPage from './pages/FeedPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 
 export default function App() {
@@ -40,9 +41,12 @@ export default function App() {
               }
             >
               <Route index element={<EmptyChatPage />} />
+              <Route path="feed" element={<FeedPage />} />
+              <Route path="feed/profile" element={<ProfilePage />} />
+              <Route path="feed/profile/:profileUserId" element={<ProfilePage />} />
               <Route path="chat/:conversationId" element={<ChatWindow />} />
               <Route path="friends" element={<FriendsPage />} />
-              <Route path="profile" element={<ProfilePage />} />
+              <Route path="profile" element={<Navigate to="/feed/profile" replace />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
