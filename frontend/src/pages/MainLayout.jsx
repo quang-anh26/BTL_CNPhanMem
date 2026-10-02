@@ -9,12 +9,12 @@ export default function MainLayout() {
   const { conversationId } = useParams()
   const location = useLocation()
   const { callRequest, clearCallRequest } = useSocket()
-  const isFeedPage = location.pathname.startsWith('/feed')
-  const shellClass = isFeedPage ? 'feed-shell' : 'nav-overlay-shell'
+  const isSocialPage = location.pathname.startsWith('/feed') || location.pathname.startsWith('/events')
+  const shellClass = isSocialPage ? 'feed-shell' : 'nav-overlay-shell'
   return (
     <div className={`app-shell ${shellClass}`}>
       <NavRail />
-      {!isFeedPage && <Sidebar activeConversationId={conversationId} />}
+      {!isSocialPage && <Sidebar activeConversationId={conversationId} />}
       <Outlet />
       <CallOverlay
         conversationInfo={callRequest}

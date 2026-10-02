@@ -199,10 +199,12 @@ GO
 CREATE TABLE dbo.SOCIAL_POST (
     post_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
     author_id   BIGINT        NOT NULL,
+    shared_post_id BIGINT     NULL,
     content     NVARCHAR(MAX) NOT NULL,
     image_url   VARCHAR(1000) NULL,
     created_at  DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
-    CONSTRAINT FK_social_post_author FOREIGN KEY (author_id) REFERENCES dbo.USERS(user_id)
+    CONSTRAINT FK_social_post_author FOREIGN KEY (author_id) REFERENCES dbo.USERS(user_id),
+    CONSTRAINT FK_social_post_shared_post FOREIGN KEY (shared_post_id) REFERENCES dbo.SOCIAL_POST(post_id)
 );
 GO
 CREATE INDEX IX_social_post_created ON dbo.SOCIAL_POST(created_at DESC);

@@ -24,6 +24,10 @@ public class SocialPost {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shared_post_id")
+    private SocialPost sharedPost;
+
     @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String content;
 

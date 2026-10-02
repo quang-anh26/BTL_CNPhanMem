@@ -239,6 +239,25 @@ export default function ProfilePage() {
     }
   }
 
+  const shareToFeed = async (post) => {
+    try {
+      const { data } = await feedApi.share(post.postId, '')
+      const originalPostId = post.sharedPost?.postId || post.postId
+      setPosts((current) => {
+        const updated = current.map((item) => (
+          item.postId === originalPostId || item.sharedPost?.postId === originalPostId
+            ? { ...item, shareCount: data.shareCount }
+            : item
+        ))
+        return isOwnProfile ? [data, ...updated.filter((item) => item.postId !== data.postId)] : updated
+      })
+      setNotice('Bài viết đã được chia sẻ lên bảng tin của bạn.')
+      window.setTimeout(() => setNotice(''), 3000)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Không thể chia sẻ bài viết.')
+    }
+  }
+
   const addComment = async (postId) => {
     const content = commentDrafts[postId]?.trim()
     if (!content) return
@@ -342,9 +361,10 @@ export default function ProfilePage() {
                   <article className="profile-post-card" key={post.postId}>
                     <header><Avatar src={post.authorAvatar || avatar} name={post.authorName || profileName} size={42} /><div><strong>{post.authorName || profileName}</strong><small>{formatProfileTime(post.createdAt)}</small></div><button type="button" aria-label="Tùy chọn bài viết">···</button></header>
                     {post.content && <p className="profile-post-content">{post.content}</p>}
+                    {post.sharedPost && <div className="shared-post-preview"><div className="shared-post-heading"><Avatar src={post.sharedPost.authorAvatar} name={post.sharedPost.authorName} size={32} /><div><strong>{post.sharedPost.authorName}</strong><small>{formatProfileTime(post.sharedPost.createdAt)}</small></div></div>{post.sharedPost.content && <p>{post.sharedPost.content}</p>}{post.sharedPost.mediaType === 'VIDEO' ? <video className="shared-post-media" src={post.sharedPost.imageUrl} controls /> : post.sharedPost.imageUrl && <img className="shared-post-media" src={post.sharedPost.imageUrl} alt="Shared post" />}</div>}
                     {post.mediaType === 'VIDEO' ? <video className="profile-post-media" src={post.imageUrl} controls /> : post.imageUrl && <img className="profile-post-media" src={post.imageUrl} alt="Ảnh trong bài viết" />}
                     <div className="profile-post-summary"><span>👍 {post.likeCount || 0}</span><span>{post.comments?.length || 0} bình luận</span></div>
-                    <div className="profile-post-actions"><button type="button" className={post.likedByViewer ? 'liked' : ''} onClick={() => reactToPost(post.postId)}>👍 Thích</button><button type="button" onClick={() => document.getElementById(`profile-comment-${post.postId}`)?.focus()}>▢ Bình luận</button><button type="button" onClick={() => navigator.clipboard?.writeText(window.location.href)}>↗ Chia sẻ</button></div>
+                    <div className="profile-post-actions"><button type="button" className={post.likedByViewer ? 'liked' : ''} onClick={() => reactToPost(post.postId)}>👍 Thích</button><button type="button" onClick={() => document.getElementById(`profile-comment-${post.postId}`)?.focus()}>▢ Bình luận</button><button type="button" onClick={() => shareToFeed(post)}>↗ {post.shareCount > 0 && <span className="action-count">{post.shareCount}</span>} Chia sẻ</button></div>
                     {post.comments?.slice(-2).map((comment) => <div className="profile-post-comment" key={comment.commentId}><strong>{comment.authorName}</strong><span>{comment.content}</span></div>)}
                     <form className="profile-comment-form" onSubmit={(event) => { event.preventDefault(); addComment(post.postId) }}><Avatar src={avatar} name={profileName} size={30} /><input id={`profile-comment-${post.postId}`} value={commentDrafts[post.postId] || ''} onChange={(event) => setCommentDrafts((current) => ({ ...current, [post.postId]: event.target.value }))} placeholder="Viết bình luận..." /><button type="submit">Gửi</button></form>
                   </article>
@@ -368,7 +388,7 @@ export default function ProfilePage() {
               {groups.slice(0, 3).map((group) => <div className="profile-group-row" key={group.conversationId}><span className="profile-group-icon">♧</span><div><strong>{group.name || 'Nhóm chat'}</strong><small>Nhóm trò chuyện</small></div></div>)}
               {groups.length === 0 && <p className="profile-muted">Nhóm bạn tham gia sẽ hiển thị tại đây.</p>}
             </section>
-            <section className="profile-panel profile-account-panel"><h2>Thông tin liên hệ</h2><div className="profile-info-row"><span>@</span><span>{profileUsername || '—'}</span></div><div className="profile-info-row"><span>◉</span><span>{profileOnline ? 'Đang hoạt động' : 'Nexora'}</span></div></section>
+            <section className="profile-panel profile-account-panel"><h2>Thông tin liên hệ</h2><div className="profile-info-row"><span>@</span><span>{profileUsername || '—'}</span></div><div className="profile-info-row"><span>◉</span><span>{profileOnline ? 'Đang hoạt động' : 'KapaTalk'}</span></div></section>
           </aside>}
         </div>
       </div>

@@ -4,6 +4,8 @@ import com.example.messaging.dto.feed.CreateCommentRequest;
 import com.example.messaging.dto.feed.CreatePostRequest;
 import com.example.messaging.dto.feed.FeedCommentResponse;
 import com.example.messaging.dto.feed.FeedPostResponse;
+import com.example.messaging.dto.feed.SharedPostResponse;
+import com.example.messaging.dto.feed.SharePostRequest;
 import com.example.messaging.entity.SocialPost;
 import com.example.messaging.entity.SocialPostComment;
 import com.example.messaging.entity.SocialPostReaction;
@@ -34,6 +36,7 @@ public class FeedService {
     private final SocialPostCommentRepository commentRepository;
     private final UserService userService;
 
+    @Transactional(readOnly = true)
     public List<FeedPostResponse> list(Long viewerId) {
         return postRepository.findAll().stream()
                 .sorted(java.util.Comparator.comparing(
@@ -113,11 +116,26 @@ public class FeedService {
     }
 
     @Transactional
+    public FeedPostResponse share(Long postId, Long sharerId, SharePostRequest request) {
+        SocialPost target = getPost(postId);
+        SocialPost original = target.getSharedPost() == null ? target : target.getSharedPost();
+        User sharer = userService.getByIdOrThrow(sharerId);
+        String content = request.getContent() == null ? "" : request.getContent().trim();
+        SocialPost sharedPost = postRepository.save(SocialPost.builder()
+                .author(sharer)
+                .content(content)
+                .sharedPost(original)
+                .build());
+        return toResponse(sharedPost, sharerId);
+    }
+
+    @Transactional
     public void delete(Long postId, Long requesterId) {
         SocialPost post = getPost(postId);
         if (!post.getAuthor().getUserId().equals(requesterId)) {
             throw ApiException.forbidden("Chỉ tác giả mới có thể xóa bài viết");
         }
+        postRepository.deleteAll(postRepository.findBySharedPostPostId(postId));
         postRepository.delete(post);
     }
 
@@ -153,6 +171,22 @@ public class FeedService {
                 .viewerReaction(viewerReaction == null ? null :
                     (viewerReaction.getReactionType() == null ? "LIKE" : viewerReaction.getReactionType()))
                 .comments(comments)
+                .shareCount(postRepository.countBySharedPostPostId(
+                        post.getSharedPost() == null ? post.getPostId() : post.getSharedPost().getPostId()))
+                .sharedPost(post.getSharedPost() == null ? null : toSharedPostResponse(post.getSharedPost()))
+                .build();
+    }
+
+    private SharedPostResponse toSharedPostResponse(SocialPost post) {
+        return SharedPostResponse.builder()
+                .postId(post.getPostId())
+                .authorId(post.getAuthor().getUserId())
+                .authorName(displayName(post.getAuthor()))
+                .authorAvatar(post.getAuthor().getAvatar())
+                .content(post.getContent())
+                .imageUrl(post.getImageUrl())
+                .mediaType(resolveMediaType(post.getImageUrl()))
+                .createdAt(post.getCreatedAt())
                 .build();
     }
 

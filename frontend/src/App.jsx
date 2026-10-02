@@ -12,6 +12,7 @@ import ChatWindow from './pages/ChatWindow'
 import FriendsPage from './pages/FriendsPage'
 import ProfilePage from './pages/ProfilePage'
 import FeedPage from './pages/FeedPage'
+import EventsPage from './pages/EventsPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 
 export default function App() {
@@ -42,6 +43,8 @@ export default function App() {
             >
               <Route index element={<EmptyChatPage />} />
               <Route path="feed" element={<FeedPage />} />
+              <Route path="events" element={<EventsPage />} />
+              <Route path="events/:eventId" element={<EventsPage />} />
               <Route path="feed/profile" element={<ProfilePage />} />
               <Route path="feed/profile/:profileUserId" element={<ProfilePage />} />
               <Route path="chat/:conversationId" element={<ChatWindow />} />

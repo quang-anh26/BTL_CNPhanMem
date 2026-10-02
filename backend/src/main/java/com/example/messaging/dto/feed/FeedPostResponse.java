@@ -21,4 +21,6 @@ public class FeedPostResponse {
     boolean likedByViewer;
     String viewerReaction;
     List<FeedCommentResponse> comments;
+    long shareCount;
+    SharedPostResponse sharedPost;
 }

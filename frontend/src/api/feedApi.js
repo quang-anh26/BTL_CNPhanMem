@@ -6,5 +6,6 @@ export const feedApi = {
   like: (postId) => axiosClient.post(`/api/feed/${postId}/like`),
   react: (postId, reactionType) => axiosClient.post(`/api/feed/${postId}/reaction`, null, { params: { reactionType } }),
   comment: (postId, content) => axiosClient.post(`/api/feed/${postId}/comments`, { content }),
+  share: (postId, content = '') => axiosClient.post(`/api/feed/${postId}/share`, { content }),
   remove: (postId) => axiosClient.delete(`/api/feed/${postId}`),
 }

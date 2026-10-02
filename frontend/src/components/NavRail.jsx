@@ -13,6 +13,7 @@ import {
   FeedVideoIcon,
   BellIcon,
   ArchiveIcon,
+  CalendarIcon,
   SettingsIcon,
   ChevronLeft,
   ChevronRight,
@@ -77,7 +78,7 @@ export default function NavRail() {
         {/* Brand Header */}
         <div className="nav-rail-brand">
           <MessengerLogo size={32} />
-          <div className="nav-brand-copy"><span className="brand-title">Nexora</span><small>Kết nối · Chia sẻ · Cùng phát triển</small></div>
+          <div className="nav-brand-copy"><span className="brand-title">KapaTalk</span><small>Kết nối · Chia sẻ · Cùng phát triển</small></div>
         </div>
 
         {/* Navigation Links */}
@@ -122,6 +123,15 @@ export default function NavRail() {
             </span>
             <span className="nav-label">Bạn bè</span>
             {pendingCount > 0 && <span className="nav-badge">{pendingCount}</span>}
+          </NavLink>
+
+          <NavLink
+            to="/events"
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            title="Sự kiện"
+          >
+            <span className="nav-icon"><CalendarIcon size={20} /></span>
+            <span className="nav-label">Sự kiện</span>
           </NavLink>
 
           <button type="button" className="nav-item preview-nav-item" title="Nhóm · bản xem trước" onClick={() => showPreviewNotice('Nhóm')}>

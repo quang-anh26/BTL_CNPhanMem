@@ -266,7 +266,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                   <div className="settings-item-content">
                     <div className="settings-item-title">Chế độ tối</div>
                     <div className="settings-item-desc">
-                      Điều chỉnh giao diện của Kapatalk để giảm độ chói và cho đôi mắt được nghỉ ngơi.
+                      Điều chỉnh giao diện của KapaTalk để giảm độ chói và cho đôi mắt được nghỉ ngơi.
                     </div>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               </button>
               <h3 style={{ margin: '14px 0 8px', fontSize: 18 }}>Quản lý phần Chặn</h3>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 18 }}>
-                Khi bạn chặn ai đó, họ sẽ không thể nhắn tin hoặc gọi điện cho bạn trên Kapatalk.
+                Khi bạn chặn ai đó, họ sẽ không thể nhắn tin hoặc gọi điện cho bạn trên KapaTalk.
               </p>
               <div style={{ background: 'var(--bg-input)', padding: 16, borderRadius: 10, border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
@@ -456,7 +456,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               </button>
               <h3 style={{ margin: '14px 0 8px', fontSize: 18 }}>Quản lý khoản thanh toán</h3>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 18 }}>
-                Xem lịch sử giao dịch và phương thức thanh toán của bạn trên Kapatalk.
+                Xem lịch sử giao dịch và phương thức thanh toán của bạn trên KapaTalk.
               </p>
               <div style={{ background: 'var(--bg-input)', padding: 18, borderRadius: 10, border: '1px solid var(--border)', textAlign: 'center' }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>💳</div>
@@ -464,7 +464,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                   Chưa có phương thức thanh toán
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
-                  Các khoản thanh toán an toàn và bảo mật thông qua hệ thống Kapatalk.
+                  Các khoản thanh toán an toàn và bảo mật thông qua hệ thống KapaTalk.
                 </div>
               </div>
             </div>
