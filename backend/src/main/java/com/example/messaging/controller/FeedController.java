@@ -3,6 +3,7 @@ package com.example.messaging.controller;
 import com.example.messaging.dto.feed.CreateCommentRequest;
 import com.example.messaging.dto.feed.CreatePostRequest;
 import com.example.messaging.dto.feed.FeedPostResponse;
+import com.example.messaging.dto.feed.SharePostRequest;
 import com.example.messaging.security.CurrentUser;
 import com.example.messaging.service.FeedService;
 import jakarta.validation.Valid;
@@ -47,6 +48,13 @@ public class FeedController {
                                                      @PathVariable Long postId,
                                                      @Valid @RequestBody CreateCommentRequest request) {
         return ResponseEntity.ok(feedService.addComment(postId, userId, request));
+    }
+
+    @PostMapping("/{postId}/share")
+    public ResponseEntity<FeedPostResponse> share(@CurrentUser Long userId,
+                                                   @PathVariable Long postId,
+                                                   @Valid @RequestBody SharePostRequest request) {
+        return ResponseEntity.ok(feedService.share(postId, userId, request));
     }
 
     @DeleteMapping("/{postId}")
