@@ -216,7 +216,6 @@ export default function EventsPage() {
                 <div className="event-detail-body">
                   <div className="event-detail-heading">
                     <div>
-                      <span className="events-eyebrow">CHI TIẾT SỰ KIỆN</span>
                       <h1>{selectedEvent.title}</h1>
                     </div>
                     {isOrganizer && <div className="event-owner-actions"><button type="button" onClick={openEditForm}>Chỉnh sửa</button><button type="button" className="danger" onClick={cancelEvent}>Hủy sự kiện</button></div>}
