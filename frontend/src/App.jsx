@@ -10,6 +10,7 @@ import MainLayout from './pages/MainLayout'
 import EmptyChatPage from './pages/EmptyChatPage'
 import ChatWindow from './pages/ChatWindow'
 import FriendsPage from './pages/FriendsPage'
+import MessageRequestsPage from './pages/MessageRequestsPage'
 import ProfilePage from './pages/ProfilePage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 
@@ -42,6 +43,7 @@ export default function App() {
               <Route index element={<EmptyChatPage />} />
               <Route path="chat/:conversationId" element={<ChatWindow />} />
               <Route path="friends" element={<FriendsPage />} />
+              <Route path="message-requests" element={<MessageRequestsPage />} />
               <Route path="profile" element={<ProfilePage />} />
             </Route>
 
