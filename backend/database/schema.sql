@@ -28,7 +28,12 @@ CREATE TABLE dbo.USERS (
     password       VARCHAR(255)  NOT NULL,          -- BCrypt hash
     display_name   NVARCHAR(100) NULL,
     avatar         VARCHAR(500)  NULL,
+    cover_image    VARCHAR(500)  NULL,
     bio            NVARCHAR(255) NULL,
+    education      NVARCHAR(120) NULL,
+    location       NVARCHAR(120) NULL,
+    relationship_status NVARCHAR(40) NULL,
+    birth_date     DATE          NULL,
     role           VARCHAR(20)   NOT NULL DEFAULT 'USER',    -- USER, ADMIN
     status         VARCHAR(20)   NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE, LOCKED
     is_online      BIT           NOT NULL DEFAULT 0,
@@ -208,5 +213,57 @@ GO
 CREATE INDEX IX_refreshtoken_user ON dbo.REFRESH_TOKEN(user_id);
 GO
 
-PRINT 'Schema created successfully: 9 tables (USERS, FRIEND_REQUEST, CONVERSATION, CONVERSATION_MEMBER, MESSAGE, MESSAGE_STATUS, ATTACHMENT, BLOCK, REFRESH_TOKEN).';
+/* ---------------------------------------------------------------------
+   10. SOCIAL_POST
+   --------------------------------------------------------------------- */
+IF OBJECT_ID('dbo.SOCIAL_POST', 'U') IS NOT NULL DROP TABLE dbo.SOCIAL_POST;
+GO
+CREATE TABLE dbo.SOCIAL_POST (
+    post_id     BIGINT IDENTITY(1,1) PRIMARY KEY,
+    author_id   BIGINT        NOT NULL,
+    shared_post_id BIGINT     NULL,
+    content     NVARCHAR(MAX) NOT NULL,
+    image_url   VARCHAR(1000) NULL,
+    created_at  DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT FK_social_post_author FOREIGN KEY (author_id) REFERENCES dbo.USERS(user_id),
+    CONSTRAINT FK_social_post_shared_post FOREIGN KEY (shared_post_id) REFERENCES dbo.SOCIAL_POST(post_id)
+);
+GO
+CREATE INDEX IX_social_post_created ON dbo.SOCIAL_POST(created_at DESC);
+GO
+
+/* ---------------------------------------------------------------------
+   11. SOCIAL_POST_REACTION
+   --------------------------------------------------------------------- */
+IF OBJECT_ID('dbo.SOCIAL_POST_REACTION', 'U') IS NOT NULL DROP TABLE dbo.SOCIAL_POST_REACTION;
+GO
+CREATE TABLE dbo.SOCIAL_POST_REACTION (
+    id          BIGINT IDENTITY(1,1) PRIMARY KEY,
+    post_id     BIGINT   NOT NULL,
+    user_id     BIGINT   NOT NULL,
+    reaction_type VARCHAR(20) NOT NULL DEFAULT 'LIKE',
+    created_at  DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT FK_social_reaction_post FOREIGN KEY (post_id) REFERENCES dbo.SOCIAL_POST(post_id),
+    CONSTRAINT FK_social_reaction_user FOREIGN KEY (user_id) REFERENCES dbo.USERS(user_id),
+    CONSTRAINT UQ_social_reaction_post_user UNIQUE (post_id, user_id)
+);
+GO
+
+/* ---------------------------------------------------------------------
+   12. SOCIAL_POST_COMMENT
+   --------------------------------------------------------------------- */
+IF OBJECT_ID('dbo.SOCIAL_POST_COMMENT', 'U') IS NOT NULL DROP TABLE dbo.SOCIAL_POST_COMMENT;
+GO
+CREATE TABLE dbo.SOCIAL_POST_COMMENT (
+    comment_id  BIGINT IDENTITY(1,1) PRIMARY KEY,
+    post_id     BIGINT        NOT NULL,
+    author_id   BIGINT        NOT NULL,
+    content     NVARCHAR(1000) NOT NULL,
+    created_at  DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT FK_social_comment_post FOREIGN KEY (post_id) REFERENCES dbo.SOCIAL_POST(post_id),
+    CONSTRAINT FK_social_comment_author FOREIGN KEY (author_id) REFERENCES dbo.USERS(user_id)
+);
+GO
+
+PRINT 'Schema created successfully: 12 tables including the Kapatalk social feed.';
 GO

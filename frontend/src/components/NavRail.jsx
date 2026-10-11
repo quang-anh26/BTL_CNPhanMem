@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import Avatar from './Avatar'
 import { useAuth } from '../context/AuthContext'
 import { friendApi } from '../api/friendApi'
@@ -8,8 +8,13 @@ import SettingsModal from './SettingsModal'
 import {
   MessengerLogo,
   ChatIcon,
+  FeedIcon,
   FriendsIcon,
+  SearchIcon,
+  FeedVideoIcon,
+  BellIcon,
   ArchiveIcon,
+  CalendarIcon,
   SettingsIcon,
   ChevronLeft,
   ChevronRight,
@@ -19,8 +24,13 @@ import {
 export default function NavRail() {
   const { user } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [pendingCount, setPendingCount] = useState(0)
+<<<<<<< HEAD
   const [messageRequestCount, setMessageRequestCount] = useState(0)
+=======
+  const [friendNotice, setFriendNotice] = useState('')
+>>>>>>> origin/main
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [archiveSelected, setArchiveSelected] = useState(false)
@@ -29,10 +39,27 @@ export default function NavRail() {
   })
 
   useEffect(() => {
-    friendApi
-      .received()
-      .then((res) => setPendingCount(res.data ? res.data.length : 0))
-      .catch(() => {})
+    let previousCount = 0
+    let hasLoadedInitialCount = false
+    const checkFriendRequests = () => {
+      friendApi
+        .received()
+        .then((res) => {
+          const nextCount = res.data ? res.data.length : 0
+          if (hasLoadedInitialCount && nextCount > previousCount) {
+            setFriendNotice(`Bạn có ${nextCount - previousCount} lời mời kết bạn mới`)
+            window.setTimeout(() => setFriendNotice(''), 4000)
+          }
+          previousCount = nextCount
+          hasLoadedInitialCount = true
+          setPendingCount(nextCount)
+        })
+        .catch(() => {})
+    }
+
+    checkFriendRequests()
+    const intervalId = window.setInterval(checkFriendRequests, 5000)
+    return () => window.clearInterval(intervalId)
   }, [])
 
   useEffect(() => {
@@ -52,6 +79,10 @@ export default function NavRail() {
 
   const displayName = user?.displayName || user?.username || 'Tài khoản'
   const isOnline = user?.isOnline !== false
+  const showPreviewNotice = (feature) => {
+    setFriendNotice(`${feature} đang ở bản xem trước`)
+    window.setTimeout(() => setFriendNotice(''), 2500)
+  }
 
   const toggleCollapsed = (event) => {
     event.stopPropagation()
@@ -68,15 +99,31 @@ export default function NavRail() {
         {/* Brand Header */}
         <div className="nav-rail-brand">
           <MessengerLogo size={32} />
-          <span className="brand-title">Kapatalk</span>
+          <div className="nav-brand-copy"><span className="brand-title">KapaTalk</span><small>Kết nối · Chia sẻ · Cùng phát triển</small></div>
         </div>
 
         {/* Navigation Links */}
         <div className="nav-rail-menu">
           <NavLink
+            to="/feed"
+            className={({ isActive }) => `nav-item ${isActive && !archiveSelected ? 'active' : ''}`}
+            title="Bảng tin"
+            onClick={() => setArchiveSelected(false)}
+          >
+            <span className="nav-icon">
+              <FeedIcon size={20} />
+            </span>
+            <span className="nav-label">Bảng tin</span>
+          </NavLink>
+
+          <NavLink
             to="/"
             className={({ isActive }) =>
+<<<<<<< HEAD
               `nav-item ${isActive && !location.pathname.startsWith('/friends') && !location.pathname.startsWith('/message-requests') && !location.pathname.startsWith('/profile') ? 'active' : ''}`
+=======
+              `nav-item nav-chat-link ${isActive && !archiveSelected && !location.pathname.startsWith('/friends') && !location.pathname.startsWith('/profile') ? 'active' : ''}`
+>>>>>>> origin/main
             }
             title="Trò chuyện"
             onClick={() => {
@@ -116,6 +163,31 @@ export default function NavRail() {
             {pendingCount > 0 && <span className="nav-badge">{pendingCount}</span>}
           </NavLink>
 
+          <NavLink
+            to="/events"
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            title="Sự kiện"
+          >
+            <span className="nav-icon"><CalendarIcon size={20} /></span>
+            <span className="nav-label">Sự kiện</span>
+          </NavLink>
+
+          <button type="button" className="nav-item preview-nav-item" title="Nhóm · bản xem trước" onClick={() => showPreviewNotice('Nhóm')}>
+            <span className="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7" r="3.2"/><circle cx="4.8" cy="9" r="2.4"/><circle cx="19.2" cy="9" r="2.4"/><path d="M6.4 18.7v-1.1a5.6 5.6 0 0 1 11.2 0v1.1c0 .8-.6 1.4-1.4 1.4H7.8c-.8 0-1.4-.6-1.4-1.4Z"/><path d="M1.1 17.7v-.8a3.8 3.8 0 0 1 4-3.8c.6 0 1.2.1 1.7.4a7 7 0 0 0-1.8 4.7H2.5c-.8 0-1.4-.2-1.4-.5ZM22.9 17.7v-.8a3.8 3.8 0 0 0-4-3.8c-.6 0-1.2.1-1.7.4a7 7 0 0 1 1.8 4.7h2.5c.8 0 1.4-.2 1.4-.5Z"/></svg></span><span className="nav-label">Nhóm</span>
+          </button>
+          <button type="button" className="nav-item preview-nav-item" title="Khám phá · bản xem trước" onClick={() => showPreviewNotice('Khám phá')}>
+            <span className="nav-icon"><SearchIcon size={20} /></span><span className="nav-label">Khám phá</span>
+          </button>
+          <button type="button" className="nav-item preview-nav-item" title="Video · bản xem trước" onClick={() => showPreviewNotice('Video')}>
+            <span className="nav-icon"><FeedVideoIcon size={20} /></span><span className="nav-label">Video</span>
+          </button>
+          <button type="button" className="nav-item preview-nav-item" title="Marketplace · bản xem trước" onClick={() => showPreviewNotice('Marketplace')}>
+            <span className="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9h18l-1.5-6h-15L3 9Z"/><path d="M5 9v12h14V9M9 21v-7h6v7"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg></span><span className="nav-label">Marketplace</span>
+          </button>
+          <button type="button" className="nav-item preview-nav-item" title="Thông báo · lời mời kết bạn" onClick={() => navigate('/friends')}>
+            <span className="nav-icon"><BellIcon size={20} /></span><span className="nav-label">Thông báo</span>
+          </button>
+
           <button
             type="button"
             className={`nav-item nav-archive-button ${archiveSelected ? 'active' : ''}`}
@@ -134,6 +206,14 @@ export default function NavRail() {
         </div>
 
         {/* Footer: Real user profile & status - clicking opens Settings modal */}
+        <div className="nav-shortcuts">
+          <div className="nav-shortcuts-title">Lối tắt của bạn</div>
+          {['Lớp CNTT K62', 'Những người thích du lịch', 'Chill cùng nhau', 'Anime & Manga', 'Việt Nam / Du lịch'].map((shortcut, index) => (
+            <button key={shortcut} type="button" className="nav-shortcut" onClick={() => showPreviewNotice(shortcut)} title={`${shortcut} · bản xem trước`}>
+              <span className={`shortcut-avatar shortcut-avatar-${index + 1}`}>{shortcut.charAt(0)}</span><span>{shortcut}</span>
+            </button>
+          ))}
+        </div>
         <div className="nav-rail-footer">
           {/* Status indicator row */}
           <div
@@ -156,6 +236,17 @@ export default function NavRail() {
             <span className="user-display-name">{displayName}</span>
             {userMenuOpen && (
               <div className="user-options" onClick={(event) => event.stopPropagation()}>
+                <button
+                  type="button"
+                  className="user-option"
+                  onClick={() => {
+                    navigate('/feed/profile')
+                    setUserMenuOpen(false)
+                  }}
+                >
+                  <Avatar src={user?.avatar} name={displayName} size={20} />
+                  <span>Trang cá nhân</span>
+                </button>
                 <button
                   type="button"
                   className="user-option"
@@ -183,6 +274,8 @@ export default function NavRail() {
           </button>
         </div>
       </div>
+
+      {friendNotice && <div className="friend-notice">{friendNotice}</div>}
 
       {/* Settings Modal Component matching the user's uploaded mockup */}
       <SettingsModal

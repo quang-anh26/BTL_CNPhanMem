@@ -12,6 +12,11 @@ spring:
     password: ${DB_PASSWORD:MatKhauCuaBan2024}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/migration/ensure-user-cover-image.sql
+
   jpa:
     hibernate:
       ddl-auto: update

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Outlet, useParams } from 'react-router-dom'
+import { Outlet, useLocation, useParams } from 'react-router-dom'
 import NavRail from '../components/NavRail'
 import Sidebar from '../components/Sidebar'
 import CallOverlay from '../components/CallOverlay'
@@ -7,11 +7,14 @@ import { useSocket } from '../context/SocketContext'
 
 export default function MainLayout() {
   const { conversationId } = useParams()
+  const location = useLocation()
   const { callRequest, clearCallRequest } = useSocket()
+  const isSocialPage = location.pathname.startsWith('/feed') || location.pathname.startsWith('/events')
+  const shellClass = isSocialPage ? 'feed-shell' : 'nav-overlay-shell'
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${shellClass}`}>
       <NavRail />
-      <Sidebar activeConversationId={conversationId} />
+      {!isSocialPage && <Sidebar activeConversationId={conversationId} />}
       <Outlet />
       <CallOverlay
         conversationInfo={callRequest}

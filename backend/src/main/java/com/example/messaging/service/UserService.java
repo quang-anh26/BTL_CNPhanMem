@@ -42,7 +42,12 @@ public class UserService {
         User user = getByIdOrThrow(userId);
         if (request.getDisplayName() != null) user.setDisplayName(request.getDisplayName());
         if (request.getAvatar() != null) user.setAvatar(request.getAvatar());
+        if (request.getCoverImage() != null) user.setCoverImage(request.getCoverImage());
         if (request.getBio() != null) user.setBio(request.getBio());
+        if (request.getEducation() != null) user.setEducation(request.getEducation());
+        if (request.getLocation() != null) user.setLocation(request.getLocation());
+        if (request.getRelationshipStatus() != null) user.setRelationshipStatus(request.getRelationshipStatus());
+        if (request.getBirthDate() != null) user.setBirthDate(request.getBirthDate());
         userRepository.save(user);
         return toProfileResponse(user);
     }
@@ -75,10 +80,16 @@ public class UserService {
                 .username(user.getUsername())
                 .displayName(user.getDisplayName())
                 .avatar(user.getAvatar())
+                .coverImage(user.getCoverImage())
                 .bio(user.getBio())
+                .education(user.getEducation())
+                .location(user.getLocation())
+                .relationshipStatus(user.getRelationshipStatus())
+                .birthDate(user.getBirthDate())
+                .createdAt(user.getCreatedAt())
                 .online(user.isOnline())
                 .status(user.getStatus().name())
-                .relationshipStatus(relationshipStatus)
+                .friendshipStatus(relationshipStatus)
                 .build();
             }
 
@@ -109,10 +120,15 @@ public class UserService {
                 .username(user.getUsername())
                 .displayName(user.getDisplayName())
                 .avatar(user.getAvatar())
+                .coverImage(user.getCoverImage())
                 .bio(user.getBio())
+                .education(user.getEducation())
+                .location(user.getLocation())
+                .relationshipStatus(user.getRelationshipStatus())
+                .birthDate(user.getBirthDate())
+                .createdAt(user.getCreatedAt())
                 .online(user.isOnline())
                 .status(user.getStatus().name())
-                .relationshipStatus(null)
                 .build();
     }
 }
